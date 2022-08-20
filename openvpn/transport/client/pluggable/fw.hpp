@@ -23,21 +23,110 @@
 #define OPENVPN_TRANSPORT_CLIENT_PLUGGABLE_FW_H
 
 #ifdef OPENVPN_PLUGGABLE_TRANSPORTS
-#include <openvpn/transport/client/transbase.hpp>
 #include <openvpn/transport/client/pluggable/pt.hpp>
+#include <openvpn/transport/client/transbase.hpp>
+#include <string>
+
+#include "ck-ovpn-plugin.h"
+
 #endif
 
 namespace openvpn {
-  namespace PluggableTransports {
+namespace PluggableTransports {
+
 #ifdef OPENVPN_PLUGGABLE_TRANSPORTS
-    struct Factory
-    {
-      virtual openvpn::PluggableTransports::Transport::Ptr new_transport_factory() = 0;
-      virtual ~Factory() {}
-    };
-#else
-    struct Factory {};
-#endif
+class CloakTransport final : public PluggableTransports::Connection,
+                             public PluggableTransports::Transport {
+ public:
+  CloakTransport(){};
+
+  CloakTransport(openvpn_io::ip::tcp::endpoint address) {
+    int ret = 0;
+
+    char* config = getenv("CLOAK_CONFIG");
+
+    if (*config == '\0') {
+      return;
+    }
+
+    if (config == nullptr){
+      return;
+    }
+
+    // Setup cloak config
+    ret = Initialize_cloak_c_client(config);
+
+    if (ret < 0) {
+      return;
+    }
+
+    // Start cloak connection
+    client_id = Cloak_dial();
+
+    inited = true;
+  };
+
+  size_t send(const openvpn_io::const_buffer& buffer) {
+    if (!inited) {
+      return -1;
+    }
+
+    mt.try_lock();
+    GoInt number_of_characters_sent =
+        Cloak_write(client_id, (void*)buffer.data(), (int)buffer.size());
+    mt.unlock();
+
+    if (number_of_characters_sent < 0) {
+      goto error;
+    }
+
+    return number_of_characters_sent;
+
+  error:
+    return -1;
+  };
+
+  size_t receive(const openvpn_io::mutable_buffer& buffer) {
+    if (!inited) {
+      return -1;
+    }
+
+    mt.try_lock();
+    GoInt number_of_bytes_read =
+        Cloak_read(client_id, (void*)buffer.data(), (int)buffer.size());
+    mt.unlock();
+
+    if (number_of_bytes_read < 0) {
+      return -1;
+    }
+
+    return number_of_bytes_read;
+  };
+
+  void close() { Cloak_close_connection(client_id); };
+
+  int native_handle() { return 0; };
+
+  PluggableTransports::Connection::Ptr dial(
+      openvpn_io::ip::tcp::endpoint address) {
+    return new CloakTransport(address);
+  };
+
+ private:
+  std::mutex mt;
+  GoInt client_id;
+  bool inited = false;
+};
+
+struct Factory {
+  virtual openvpn::PluggableTransports::Transport::Ptr new_transport_factory() {
+    return new CloakTransport();
   }
-}
+  virtual ~Factory() {}
+};
+#else
+struct Factory {};
+#endif
+}  // namespace PluggableTransports
+}  // namespace openvpn
 #endif
