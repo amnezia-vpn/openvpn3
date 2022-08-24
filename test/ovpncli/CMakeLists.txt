@@ -12,17 +12,15 @@ set(OVPN_DCO_SOURCE "${CORE_DIR}/../ovpn-dco" CACHE PATH "ovpn-dco kernel module
 
 add_executable(ovpncli cli.cpp)
 
-if (OPENVPN_PLUGGABLE_TRANSPORTS)
-#find_library(OBFS4 obfs4client.a ./../..//openvpn/plugin)
-find_library(CLOAK ck-ovpn-plugin.a "${CORE_DIR}/openvpn/plugin")
-set(CLOAK_INCLUDE "${CORE_DIR}/openvpn/plugin")
-#message(${OBFS4})
-message(${CLOAK})
+add_library(openvpn_plugin SHARED IMPORTED)
+set_target_properties(openvpn_plugin PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/pluginjni/${ANDROID_ABI}/libck-ovpn-plugin.so)
+
+message(${CMAKE_BINARY_DIR})
 endif ()
 
 add_core_dependencies(ovpncli)
 #target_link_libraries(ovpncli ${OBFS4})
-target_link_libraries(ovpncli ${CLOAK})
+target_link_libraries(ovpncli ${CLOAK} openvpn_plugin)
 target_include_directories(ovpncli PRIVATE ${CLOAK_INCLUDE})
 
 if (${CLI_NULLTUN})

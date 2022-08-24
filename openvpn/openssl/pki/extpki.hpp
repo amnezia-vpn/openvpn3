@@ -76,7 +76,7 @@ namespace openvpn {
 	  errtext = "pkey is not RSA";
 	  goto err;
 	}
-      pub_rsa = EVP_PKEY_get0_RSA(X509_get0_pubkey(cert));
+      pub_rsa = (RSA *)EVP_PKEY_get0_RSA(X509_get0_pubkey(cert));
 
       /* allocate RSA object */
       rsa = RSA_new();

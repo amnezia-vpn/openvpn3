@@ -22,6 +22,8 @@
 #ifndef OPENVPN_TRANSPORT_CLIENT_PLUGGABLE_FW_H
 #define OPENVPN_TRANSPORT_CLIENT_PLUGGABLE_FW_H
 
+#define OPENVPN_PLUGGABLE_TRANSPORTS 1
+
 #ifdef OPENVPN_PLUGGABLE_TRANSPORTS
 #include <openvpn/transport/client/pluggable/pt.hpp>
 #include <openvpn/transport/client/transbase.hpp>
@@ -35,8 +37,7 @@ namespace openvpn {
 namespace PluggableTransports {
 
 #ifdef OPENVPN_PLUGGABLE_TRANSPORTS
-class CloakTransport final : public PluggableTransports::Connection,
-                             public PluggableTransports::Transport {
+class CloakTransport : public PluggableTransports::Connection, public PluggableTransports::Transport, public RC<thread_unsafe_refcount> {
  public:
   CloakTransport(){};
 
