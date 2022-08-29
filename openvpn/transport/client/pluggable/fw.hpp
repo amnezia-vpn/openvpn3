@@ -106,7 +106,7 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
 
   void close() { Cloak_close_connection(client_id); };
 
-  int native_handle() { return 0; };
+  int native_handle() { return Cloak_native_handle(); };
 
   PluggableTransports::Connection::Ptr dial(
       openvpn_io::ip::tcp::endpoint address) {
