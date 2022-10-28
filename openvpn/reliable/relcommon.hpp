@@ -29,7 +29,7 @@
 namespace openvpn {
 
   namespace reliable {
-    typedef PacketID::id_t id_t;    
+    typedef PacketID::id_t id_t;
   }
 
   template <typename PACKET>

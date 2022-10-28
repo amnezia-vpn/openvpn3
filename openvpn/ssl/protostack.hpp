@@ -98,14 +98,15 @@ namespace openvpn {
 		   const Frame::Ptr& frame,           // contains info on how to allocate and align buffers
 		   const SessionStats::Ptr& stats_arg,  // error statistics
 		   const id_t span,                   // basically the window size for our reliability layer
-		   const size_t max_ack_list)         // maximum number of ACK messages to bundle in one packet
+		   const size_t max_ack_list,         // maximum number of ACK messages to bundle in one packet
+                   bool psid_cookie_mode)             // start the reliability layer at packet id 1, not 0
       : tls_timeout(tls_timeout_arg),
 	ssl_(ssl_factory.ssl()),
 	frame_(frame),
 	stats(stats_arg),
 	now(now_arg),
-	rel_recv(span),
-	rel_send(span),
+	rel_recv(span, psid_cookie_mode ? 1 : 0),
+	rel_send(span, psid_cookie_mode ? 1 : 0),
 	xmit_acks(max_ack_list)
     {
     }
