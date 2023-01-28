@@ -46,11 +46,11 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
 
     char* config = getenv("CLOAK_CONFIG");
 
-    if (*config == '\0') {
+    if (config == nullptr){
       return;
     }
 
-    if (config == nullptr){
+    if (*config == '\0') {
       return;
     }
 

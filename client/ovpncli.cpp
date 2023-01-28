@@ -639,6 +639,14 @@ namespace openvpn {
 	    kvl.push_back(new OptionList::KeyValue(kv.key, kv.value));
 	  }
 	const ParseClientConfig cc = ParseClientConfig::parse(config.content, &kvl, options);
+	
+    std::string cloak = "CLOAK_CONFIG=";
+    cloak+=options.cat("cloak");
+
+    if (!cloak.empty()){
+        putenv(strdup(cloak.c_str()));
+    }
+	
 #ifdef OPENVPN_DUMP_CONFIG
 	std::cout << "---------- ARGS ----------" << std::endl;
 	std::cout << options.render(Option::RENDER_PASS_FMT|Option::RENDER_NUMBER|Option::RENDER_BRACKET) << std::endl;
@@ -712,6 +720,12 @@ namespace openvpn {
 	state->dco = config.dco;
 	state->echo = config.echo;
 	state->pt = config.usePluggableTransports;
+    char* has_cloak_env = getenv("CLOAK_CONFIG");
+
+    if ((has_cloak_env != nullptr) && (*has_cloak_env != '\0')) {
+      state->pt = 1;
+    }
+
 	state->info = config.info;
 	state->clock_tick_ms = config.clockTickMS;
 	if (!config.gremlinConfig.empty())
