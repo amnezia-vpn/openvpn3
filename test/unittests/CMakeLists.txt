@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 include(findcoredeps)
 include(dlgoogletest)
 
+
 # Extra includes/libraries that are currently only use by the core unit test
 FIND_PATH(LZO_INCLUDE_DIR NAMES lzo/lzo1x.h)
 FIND_LIBRARY(LZO_LIBRARIES NAMES lzo2)
@@ -64,10 +65,19 @@ if (WIN32)
     target_sources(coreUnitTests PRIVATE test_iphelper.cpp)
 endif ()
 
+if (OPENVPN_PLUGGABLE_TRANSPORTS)
+#find_library(OBFS4 obfs4client.a ./../..//openvpn/plugin)
+find_library(CLOAK ck-ovpn-plugin.a "${CORE_DIR}/openvpn/plugin")
+set(CLOAK_INCLUDE "${CORE_DIR}/openvpn/plugin")
+#message(${OBFS4})
+message(${CLOAK})
+endif ()
+
 add_core_dependencies(coreUnitTests)
-target_link_libraries(coreUnitTests ${GTEST_LIB} ${EXTRA_LIBS})
+#target_link_libraries(coreUnitTests ${OBFS4} ${GTEST_LIB} ${EXTRA_LIBS} )
+target_link_libraries(coreUnitTests ${CLOAK} ${GTEST_LIB} ${EXTRA_LIBS} )
 
 target_compile_definitions(coreUnitTests PRIVATE ${CORE_TEST_DEFINES})
-target_include_directories(coreUnitTests PRIVATE ${EXTRA_INCLUDES})
+target_include_directories(coreUnitTests PRIVATE ${EXTRA_INCLUDES} ${CLOAK_INCLUDE})
 
 add_test(NAME CoreTests COMMAND coreUnitTests)

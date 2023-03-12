@@ -12,7 +12,18 @@ set(OVPN_DCO_SOURCE "${CORE_DIR}/../ovpn-dco" CACHE PATH "ovpn-dco kernel module
 
 add_executable(ovpncli cli.cpp)
 
+if (OPENVPN_PLUGGABLE_TRANSPORTS)
+#find_library(OBFS4 obfs4client.a ./../..//openvpn/plugin)
+find_library(CLOAK ck-ovpn-plugin.a "${CORE_DIR}/openvpn/plugin")
+set(CLOAK_INCLUDE "${CORE_DIR}/openvpn/plugin")
+#message(${OBFS4})
+message(${CLOAK})
+endif ()
+
 add_core_dependencies(ovpncli)
+#target_link_libraries(ovpncli ${OBFS4})
+target_link_libraries(ovpncli ${CLOAK})
+target_include_directories(ovpncli PRIVATE ${CLOAK_INCLUDE})
 
 if (${CLI_NULLTUN})
     add_executable(ovpnclinull cli.cpp)
