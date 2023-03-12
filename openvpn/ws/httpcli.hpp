@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -321,6 +321,9 @@ namespace openvpn {
 	friend Base;
 
 	typedef RCPtr<HTTPCore> Ptr;
+#ifndef USE_ASYNC_RESOLVE
+	using results_type = openvpn_io::ip::tcp::resolver::results_type;
+#endif
 
 	struct AsioProtocol
 	{
@@ -503,7 +506,7 @@ namespace openvpn {
 
 	void streaming_start()
 	{
-	  cancel_general_timeout();
+	  cancel_general_timeout(); // cancel general timeout once websocket streaming begins
 	  content_out_hold = false;
 	  if (is_deferred())
 	    http_content_out_needed();
@@ -555,7 +558,7 @@ namespace openvpn {
 	{
 	}
 
-	virtual void http_mutate_resolver_results(openvpn_io::ip::tcp::resolver::results_type& results)
+	virtual void http_mutate_resolver_results(results_type& results)
 	{
 	}
 
@@ -724,7 +727,8 @@ namespace openvpn {
 		async_resolve_name(host.host_transport(), host.port);
 #else
 		resolver.async_resolve(host.host_transport(), host.port,
-				       [self=Ptr(this)](const openvpn_io::error_code& error, openvpn_io::ip::tcp::resolver::results_type results)
+				       [self=Ptr(this)](const openvpn_io::error_code& error,
+							results_type results)
 				       {
 					 self->resolve_callback(error, results);
 				       });
@@ -739,7 +743,7 @@ namespace openvpn {
 	}
 
 	void resolve_callback(const openvpn_io::error_code& error, // called by Asio
-			      openvpn_io::ip::tcp::resolver::results_type results)
+			      results_type results)
 	{
 	  if (halt)
 	    return;
@@ -850,11 +854,10 @@ namespace openvpn {
 	  IP::Addr addr = sf.remote_ip();
 	  if (!addr.defined())
 	    addr = IP::Addr(host.host_transport(), "AltRouting");
-	  openvpn_io::ip::tcp::resolver::results_type results =
-	    openvpn_io::ip::tcp::resolver::results_type::create(openvpn_io::ip::tcp::endpoint(addr.to_asio(),
-											      port),
-								host.host,
-								"");
+	  results_type results = results_type::create(openvpn_io::ip::tcp::endpoint(addr.to_asio(),
+										    port),
+						      host.host,
+						      "");
 
 	  if (config->debug_level >= 2)
 	    OPENVPN_LOG("ALT_ROUTING HTTP CONNECT to " << s->remote_endpoint_str() << " res=" << asio_resolver_results_to_string(results));
@@ -868,7 +871,7 @@ namespace openvpn {
 
 	  // set connect timeout
 	  {
-	    unsigned int ct = sf.connect_timeout();
+	    int ct = sf.connect_timeout();
 	    if (ct < 0)
 	      ct = config->connect_timeout;
 	    set_connect_timeout(ct);
@@ -1418,7 +1421,7 @@ namespace openvpn {
 	    parent_->http_headers_sent(*this, buf);
 	}
 
-	virtual void http_mutate_resolver_results(openvpn_io::ip::tcp::resolver::results_type& results)
+	virtual void http_mutate_resolver_results(results_type& results)
 	{
 	  if (parent_)
 	    parent_->http_mutate_resolver_results(*this, results);

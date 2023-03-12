@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -27,13 +27,20 @@
 
 #include <string>
 
+#include <openvpn/io/io.hpp>
+
+#include <openvpn/common/exception.hpp>
 #include <openvpn/common/rc.hpp>
 #include <openvpn/buffer/buffer.hpp>
 #include <openvpn/addr/ip.hpp>
 #include <openvpn/error/error.hpp>
+#include <openvpn/crypto/cryptodc.hpp>
 #include <openvpn/transport/protocol.hpp>
 
 namespace openvpn {
+
+  class OptionList;
+
   struct TransportClientParent;
 
   // Base class for client transport object.
@@ -51,6 +58,12 @@ namespace openvpn {
     virtual unsigned int transport_send_queue_size() = 0;
     virtual void reset_align_adjust(const size_t align_adjust) = 0;
     virtual IP::Addr server_endpoint_addr() const = 0;
+    virtual unsigned short server_endpoint_port() const {
+      return 0;
+    }
+    virtual int native_handle() {
+      return 0;
+    }
     virtual void server_endpoint_info(std::string& host, std::string& port, std::string& proto, std::string& ip_addr) const = 0;
     virtual Protocol transport_protocol() const = 0;
     virtual void transport_reparent(TransportClientParent* parent) = 0;
@@ -94,6 +107,7 @@ namespace openvpn {
     virtual TransportClient::Ptr new_transport_client_obj(openvpn_io::io_context& io_context,
 							  TransportClientParent* parent) = 0;
     virtual bool is_relay() { return false; }
+    virtual void process_push(const OptionList&) { return; }
   };
 
 } // namespace openvpn

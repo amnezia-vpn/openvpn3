@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -71,6 +71,7 @@ namespace openvpn {
   class Option
   {
   public:
+    OPENVPN_UNTAGGED_EXCEPTION(RejectedException);
     enum {
       MULTILINE = 0x8000000,
     };
@@ -366,6 +367,11 @@ namespace openvpn {
     void from_list(const char *arg)
     {
       push_back(std::string(arg));
+    }
+
+    void from_list(std::vector<std::string> arg)
+    {
+        data.insert(data.end(), arg.begin(), arg.end());
     }
 
     template<typename T, typename... Args>

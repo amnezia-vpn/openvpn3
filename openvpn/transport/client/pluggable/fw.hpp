@@ -26,7 +26,6 @@
 
 #ifdef OPENVPN_PLUGGABLE_TRANSPORTS
 #include <openvpn/transport/client/pluggable/pt.hpp>
-#include <openvpn/transport/client/transbase.hpp>
 #include <string>
 
 #include "ck-ovpn-plugin.h"
