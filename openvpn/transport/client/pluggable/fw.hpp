@@ -22,6 +22,8 @@
 #ifndef OPENVPN_TRANSPORT_CLIENT_PLUGGABLE_FW_H
 #define OPENVPN_TRANSPORT_CLIENT_PLUGGABLE_FW_H
 
+#define OPENVPN_PLUGGABLE_TRANSPORTS 1
+
 #ifdef OPENVPN_PLUGGABLE_TRANSPORTS
 #include <openvpn/transport/client/pluggable/pt.hpp>
 #include <openvpn/transport/client/transbase.hpp>
@@ -35,8 +37,7 @@ namespace openvpn {
 namespace PluggableTransports {
 
 #ifdef OPENVPN_PLUGGABLE_TRANSPORTS
-class CloakTransport final : public PluggableTransports::Connection,
-                             public PluggableTransports::Transport {
+class CloakTransport : public PluggableTransports::Connection, public PluggableTransports::Transport, public RC<thread_unsafe_refcount> {
  public:
   CloakTransport(){};
 
@@ -45,11 +46,11 @@ class CloakTransport final : public PluggableTransports::Connection,
 
     char* config = getenv("CLOAK_CONFIG");
 
-    if (*config == '\0') {
+    if (config == nullptr){
       return;
     }
 
-    if (config == nullptr){
+    if (*config == '\0') {
       return;
     }
 
@@ -105,7 +106,7 @@ class CloakTransport final : public PluggableTransports::Connection,
 
   void close() { Cloak_close_connection(client_id); };
 
-  int native_handle() { return 0; };
+  int native_handle() { return Cloak_native_handle(); };
 
   PluggableTransports::Connection::Ptr dial(
       openvpn_io::ip::tcp::endpoint address) {

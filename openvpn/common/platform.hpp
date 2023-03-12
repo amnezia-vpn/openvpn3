@@ -50,6 +50,9 @@
 # define OPENVPN_PLATFORM_LINUX
 #endif
 
+#define OPENVPN_PLUGGABLE_TRANSPORTS 1
+#define USE_OPENSSL 1
+
 #if !defined(_WIN32)
 #define OPENVPN_PLATFORM_TYPE_UNIX
 #endif
