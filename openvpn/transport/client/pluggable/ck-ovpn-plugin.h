@@ -21,8 +21,6 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 
 #line 11 "ck-ovpn-plugin.go"
 
-
-#include <android/log.h>
 #include <stdlib.h>
 #include <string.h>
 

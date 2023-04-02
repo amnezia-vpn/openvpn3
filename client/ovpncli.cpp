@@ -812,6 +812,14 @@ namespace openvpn {
       return ret;
     }
 
+	  OPENVPN_CLIENT_EXPORT EvalConfig OpenVPNClientHelper::eval_config_static(const Config& config)
+	  {
+	    EvalConfig eval;
+	    OptionList options;
+	    parse_config(config, eval, options);
+	    return eval;
+	  }
+  
     OPENVPN_CLIENT_EXPORT EvalConfig OpenVPNClientHelper::eval_config(const Config& config)
     {
       EvalConfig eval;

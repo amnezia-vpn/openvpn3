@@ -270,6 +270,8 @@ namespace openvpn {
       //   tls_1_0  -- use TLS 1.0 minimum (overrides profile)
       //   tls_1_1  -- use TLS 1.1 minimum (overrides profile)
       //   tls_1_2  -- use TLS 1.2 minimum (overrides profile)
+      bool forceAesCbcCiphersuites = false;
+      bool forceCiphersuitesAESCBC = false;
       std::string tlsVersionMinOverride;
 
       // Override or default the tls-cert-profile setting:
@@ -506,7 +508,8 @@ namespace openvpn {
 
       // Parse profile and determine needed credentials statically.
       EvalConfig eval_config(const Config& config);
-
+      
+      EvalConfig eval_config_static(const Config& config);
       // Maximum size of profile that should be allowed
       static long max_profile_size();
 
