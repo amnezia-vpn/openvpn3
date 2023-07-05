@@ -71,10 +71,8 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
       return -1;
     }
 
-    mt.try_lock();
     GoInt number_of_characters_sent =
         Cloak_write(client_id, (void*)buffer.data(), (int)buffer.size());
-    mt.unlock();
 
     if (number_of_characters_sent < 0) {
       goto error;
@@ -91,10 +89,8 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
       return -1;
     }
 
-    mt.try_lock();
     GoInt number_of_bytes_read =
         Cloak_read(client_id, (void*)buffer.data(), (int)buffer.size());
-    mt.unlock();
 
     if (number_of_bytes_read < 0) {
       return -1;
@@ -113,7 +109,6 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
   };
 
  private:
-  std::mutex mt;
   GoInt client_id;
   bool inited = false;
 };
