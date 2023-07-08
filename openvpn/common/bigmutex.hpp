@@ -41,6 +41,8 @@ namespace openvpn {
     OPENVPN_EXTERN std::recursive_mutex the_recursive_mutex;
   }
 
+#define OPENVPN_ENABLE_BIGMUTEX 1
+
   #ifdef OPENVPN_ENABLE_BIGMUTEX
     #define OPENVPN_ASYNC_HANDLER \
       std::lock_guard<std::recursive_mutex> lg(bigmutex::the_recursive_mutex);

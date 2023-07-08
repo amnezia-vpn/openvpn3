@@ -287,9 +287,17 @@ namespace openvpn {
 
       void queue_send_buffer(BufferPtr& buf)
       {
-	queue.push_back(std::move(buf));
-	if (queue.size() == 1) // send operation not currently active?
-	  queue_send();
+	std::lock_guard<std::mutex> lock(send_mt);
+	auto connection = this->connection;
+	BufferAllocated& aBuf = *buf;
+        size_t bytes_sent = connection->send(aBuf.const_buffer_clamp());
+        if (bytes_sent < buf->size()) {
+	      buf->advance(bytes_sent);
+	      queue_send_buffer(buf);
+	    }
+	//queue.push_back(std::move(buf));
+	//if (queue.size() == 1) // send operation not currently active?
+	//  queue_send();
       }
 
       void queue_send()
@@ -470,6 +478,7 @@ namespace openvpn {
       SessionStats::Ptr stats;
       const size_t send_queue_max_size;
       const size_t free_list_max_size;
+      std::mutex send_mt;
       Queue queue;      // send queue
       Queue free_list;  // recycled free buffers for send queue
       PacketStream pktstream;
