@@ -46,13 +46,11 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
     char* config = getenv("CLOAK_CONFIG");
 
     if (config == nullptr){
-      // OPENVPN_LOG("CONFIG CLOAK NULL");
       ret_out = 201;
       return;
     }
 
     if (*config == '\0') {
-      // OPENVPN_LOG("CONFIG CLOAK IS \0");
       ret_out = 202;
       return;
     }
@@ -61,7 +59,6 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
     ret_out = ret;
     if (ret < 0) {
       ret_out = 203;
-      // OPENVPN_LOG("ERROR Initialize_cloak_c_client ");
       return;
     }
 

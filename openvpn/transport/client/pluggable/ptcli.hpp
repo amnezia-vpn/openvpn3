@@ -271,12 +271,6 @@ namespace openvpn {
       {
 	config->remote_list->get_endpoint(server_endpoint);
 	OPENVPN_LOG("Contacting " << server_endpoint << " via PluggableTransports");
-	char* config = getenv("CLOAK_CONFIG");
-	OPENVPN_LOG("CONFIG " << config);
-	#ifndef OPENVPN_PLUGGABLE_TRANSPORTS
-	OPENVPN_LOG("ERROR NOT CONFIG OPENVPN_PLUGGABLE_TRANSPORTS" );
-	#define OPENVPN_PLUGGABLE_TRANSPORTS
-	#endif
 	parent->transport_wait();
 
 	async_connect(server_endpoint, [self=Ptr(this)](const Error::Type error_code)
@@ -286,7 +280,6 @@ namespace openvpn {
 						  {
 						    self->config->stats->error(Error::SOCKET_PROTECT_ERROR);
 						    self->stop();
-							OPENVPN_LOG("ERROR " << error_code << " socket_protect error");
 						    self->parent->transport_error(Error::UNDEF, "socket_protect error");
 						    return;
 						  }
@@ -303,18 +296,12 @@ namespace openvpn {
 	// handle async connect. We use post to dispatch elsewhere, then post again to come back to the "main" thread
 	openvpn_io::post([&io_context, config, &connection, server_endpoint, completion=std::move(completion)]() {
 	  Error::Type error_code = Error::SUCCESS;
-	  OPENVPN_LOG("GO TO :post main function ");
 	  try
 	  {
-		OPENVPN_LOG("GO TO dial function");
 	    connection = config->transport->dial(server_endpoint);
-		int ret_out = connection->get_ret_out_int();
-		std::string s = std::to_string(ret_out);
-		OPENVPN_LOG("ret out from cloak: " << s);
 	  }
 	  catch (const std::exception& e)
 	  {
-		OPENVPN_LOG("exception openvpn_io::post");
 	    error_code = Error::PT_CONNECT_ERROR;
 	    const ExceptionCode *ec = dynamic_cast<const ExceptionCode *>(&e);
 	    if (ec && ec->code_defined())
@@ -322,9 +309,6 @@ namespace openvpn {
 	  }
 
 	  openvpn_io::post(io_context, [error_code, completion=std::move(completion)]() {
-//		OPENVPN_LOG("GO TO dial function new extent");
-//		connection = config->transport->dial(server_endpoint);
-		OPENVPN_LOG("GO TO POST ");
 		completion(error_code);
 	  });
 	});
@@ -333,11 +317,6 @@ namespace openvpn {
       bool socket_protect() {
 	if (config->socket_protect)
 	  {
-		OPENVPN_LOG("GO to function socket_protect");
-
-		int ret_out = connection->get_ret_out_int();
-		std::string s = std::to_string(ret_out);
-		OPENVPN_LOG("ret out from cloak: " << s);
 	    int fd = connection->native_handle();
 	    // short circuit prevents socket_protect from being evaluated when fd < 0
 	    if (fd < 0 || !config->socket_protect->socket_protect(fd, server_endpoint_addr()))
@@ -351,13 +330,10 @@ namespace openvpn {
       // start I/O
       void start_impl_(const Error::Type error)
       {
-	OPENVPN_LOG("GO TO start_impl_");
 	if (!halt)
 	  {
-		OPENVPN_LOG("GO TO start_impl_ NOT halt");
 	    if (!error)
 	      {
-			OPENVPN_LOG("GO TO start_impl_ NOT error");
 		impl.reset(new Link(io_context,
 				    this,
 				    connection,
@@ -375,16 +351,13 @@ namespace openvpn {
 	    else
 	      {
 		std::ostringstream os;
-		OPENVPN_LOG("PT connect error on '" << server_host << ':' << server_port << "' (" << server_endpoint << ") ");
+        os <<  "PT connect error on '" << server_host << ':' << server_port << "' (" << server_endpoint << ") ";
 		config->stats->error(Error::PT_CONNECT_ERROR);
 		stop();
 		parent->transport_error(Error::UNDEF, os.str());
 	      }
 	  }
-	  else{
-		OPENVPN_LOG("GO TO start_impl_ halted!!!!");
-	  }
-      }
+    }
 
       openvpn_io::io_context& io_context;
 
