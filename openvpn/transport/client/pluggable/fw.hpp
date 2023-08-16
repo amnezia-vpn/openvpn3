@@ -72,9 +72,6 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
     if (!inited) {
       return -1;
     }
-    
-    std::lock_guard<std::mutex> lock(send_mt);
-      
 
     GoInt number_of_characters_sent =
         Cloak_write(client_id, (void*)buffer.data(), (int)buffer.size());
@@ -93,7 +90,6 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
     if (!inited) {
       return -1;
     }
-    std::lock_guard<std::mutex> lock(recv_mt);
 
     GoInt number_of_bytes_read =
         Cloak_read(client_id, (void*)buffer.data(), (int)buffer.size());
@@ -120,8 +116,6 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
   };
 
  private:
-  std::mutex recv_mt;
-  std::mutex send_mt;
   GoInt client_id;
   bool inited = false;
   int ret_out;

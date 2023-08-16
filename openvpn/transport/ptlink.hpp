@@ -164,6 +164,7 @@ namespace openvpn {
 
       void queue_recv(PacketFrom *ptfrom)
       {
+    
     OPENVPN_LOG_PTLINK_VERBOSE("Link::queue_recv");
     if (!ptfrom)
       ptfrom = new PacketFrom();
@@ -237,14 +238,18 @@ namespace openvpn {
     auto connection = this->connection;
     // post to do an async recv, then post ot come back to the "main" thread.
     openvpn_io::post([&io_context, connection, mut_buf, completion=std::move(completion)]() mutable {
+      
       Error::Type error_code = Error::SUCCESS;
       size_t bytes_recvd = 0;
       try
       {
+      
+        OPENVPN_ASYNC_HANDLER;
         bytes_recvd = connection->receive(mut_buf);
       }
       catch (const std::exception& e)
       {
+          OPENVPN_ASYNC_HANDLER;
           error_code = Error::NETWORK_RECV_ERROR;
           const ExceptionCode *ec = dynamic_cast<const ExceptionCode *>(&e);
           if (ec && ec->code_defined())
@@ -260,55 +265,67 @@ namespace openvpn {
       template <typename Handler>
       void async_send(openvpn_io::const_buffer buf, Handler&& completion)
       {
-    // capture io_context and connection to avoid capturing self. This assumes that completion captures a reference-counted version of self.
-    openvpn_io::io_context& io_context = this->io_context;
-    auto connection = this->connection;
-    // post to do an async send, then post ot come back to the "main" thread.
-    openvpn_io::post([&io_context, connection, buf, completion=std::move(completion)]() {
-      Error::Type error_code = Error::SUCCESS;
-      size_t bytes_sent = 0;
-      try
-      {
-        bytes_sent = connection->send(buf);
-      }
-      catch (const std::exception& e)
-      {
-          error_code = Error::NETWORK_SEND_ERROR;
-          const ExceptionCode *ec = dynamic_cast<const ExceptionCode *>(&e);
-          if (ec && ec->code_defined())
-        error_code = ec->code();
-      }
+	    // capture io_context and connection to avoid capturing self. This assumes that completion captures a reference-counted version of self.
+	    openvpn_io::io_context& io_context = this->io_context;
+	    auto connection = this->connection;
+	    // post to do an async send, then post ot come back to the "main" thread.
+	    openvpn_io::post([&io_context, connection, buf, completion=std::move(completion)]() {
+	      Error::Type error_code = Error::SUCCESS;
+	      size_t bytes_sent = 0;
+	      try
+	      {
+		bytes_sent = connection->send(buf);
+	      }
+	      catch (const std::exception& e)
+	      {
+		  error_code = Error::NETWORK_SEND_ERROR;
+		  const ExceptionCode *ec = dynamic_cast<const ExceptionCode *>(&e);
+		  if (ec && ec->code_defined())
+		error_code = ec->code();
+	      }
 
-      openvpn_io::post(io_context, [error_code, bytes_sent, completion=std::move(completion)]() {
-        completion(error_code, bytes_sent);
-      });
-    });
+	      openvpn_io::post(io_context, [error_code, bytes_sent, completion=std::move(completion)]() {
+		completion(error_code, bytes_sent);
+	      });
+	    });	
       }
 
       void queue_send_buffer(BufferPtr& buf)
       {
-    std::lock_guard<std::mutex> lock(send_mt);
-    auto connection = this->connection;
-    BufferAllocated& aBuf = *buf;
-        size_t bytes_sent = connection->send(aBuf.const_buffer_clamp());
-        if (bytes_sent < buf->size()) {
-          buf->advance(bytes_sent);
-          queue_send_buffer(buf);
-        }
-    //queue.push_back(std::move(buf));
-    //if (queue.size() == 1) // send operation not currently active?
-    //  queue_send();
+	    OPENVPN_ASYNC_HANDLER; 
+	    auto connection = this->connection;
+	    BufferAllocated& aBuf = *buf;
+	    size_t bytes_sent = 0;
+	    try
+	    {
+		bytes_sent = connection->send(aBuf.const_buffer_clamp());
+	    }
+	    catch (const std::exception& e)
+	    {
+		stats->error(Error::PT_OVERFLOW);
+		read_handler->pt_error_handler("PT_OVENETWORK_SEND_ERRORRFLOW"); // error sent more bytes than we asked for
+		stop();
+	    }
+	    
+            if (bytes_sent < buf->size()) {
+	         buf->advance(bytes_sent);
+	         queue_send_buffer(buf);
+            }
+	      
+	    //queue.push_back(std::move(buf));
+	    //if (queue.size() == 1) // send operation not currently active?
+	    //  queue_send();
       }
 
       void queue_send()
       {
-    BufferAllocated& buf = *queue.front();
-    async_send(buf.const_buffer_clamp(),
-              [self=Ptr(this)](const Error::Type error_code, const size_t bytes_sent)
-              {
-                OPENVPN_ASYNC_HANDLER;
-                self->handle_send(error_code, bytes_sent);
-              });
+	    BufferAllocated& buf = *queue.front();
+	    async_send(buf.const_buffer_clamp(),
+		      [self=Ptr(this)](const Error::Type error_code, const size_t bytes_sent)
+		      {
+		        OPENVPN_ASYNC_HANDLER;
+		        self->handle_send(error_code, bytes_sent);
+		      });
       }
 
       void handle_send(const Error::Type error, const size_t bytes_sent)
