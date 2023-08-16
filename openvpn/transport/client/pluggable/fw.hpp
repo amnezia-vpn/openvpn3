@@ -39,8 +39,8 @@ namespace PluggableTransports {
 class CloakTransport : public PluggableTransports::Connection, public PluggableTransports::Transport, public RC<thread_unsafe_refcount> {
  public:
   CloakTransport(){};
+
   CloakTransport(openvpn_io::ip::tcp::endpoint address) {
-  
     int ret = 0;
 
     char* config = getenv("CLOAK_CONFIG");
@@ -88,8 +88,6 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
     if (!inited) {
       return -1;
     }
-    
-      std::lock_guard<std::mutex> lock(recv_mt);
 
     GoInt number_of_bytes_read =
         Cloak_read(client_id, (void*)buffer.data(), (int)buffer.size());
@@ -114,10 +112,7 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
   };
 
  private:
-
-  std::mutex recv_mt;
   GoInt client_id;
-  
   bool inited = false;
 };
 
