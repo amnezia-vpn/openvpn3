@@ -648,7 +648,10 @@ namespace openvpn {
     cloak+=options.cat("cloak");
 
     if (!cloak.empty()){
+        unsetenv("CLOAK_CONFIG");
         putenv(strdup(cloak.c_str()));
+    } else {
+        unsetenv("CLOAK_CONFIG");
     }
 	
 #ifdef OPENVPN_DUMP_CONFIG
