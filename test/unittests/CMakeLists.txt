@@ -97,10 +97,8 @@ if (WIN32)
 endif ()
 
 if (OPENVPN_PLUGGABLE_TRANSPORTS)
-#find_library(OBFS4 obfs4client.a ./../..//openvpn/plugin)
-find_library(CLOAK ck-ovpn-plugin.a "${CORE_DIR}/openvpn/plugin")
+find_library(CLOAK ck-ovpn-plugin.lib "${CORE_DIR}/openvpn/plugin")
 set(CLOAK_INCLUDE "${CORE_DIR}/openvpn/plugin")
-#message(${OBFS4})
 message(${CLOAK})
 endif ()
 
