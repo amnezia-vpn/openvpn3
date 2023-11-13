@@ -97,9 +97,22 @@ if (WIN32)
 endif ()
 
 if (OPENVPN_PLUGGABLE_TRANSPORTS)
-find_library(CLOAK ck-ovpn-plugin.lib "${CORE_DIR}/openvpn/plugin")
-set(CLOAK_INCLUDE "${CORE_DIR}/openvpn/plugin")
-message(${CLOAK})
+
+if (MSVC)
+    set(CLOAK_INCLUDE "${CMAKE_SOURCE_DIR}/openvpn/plugin/windows")
+    target_link_libraries(ovpncli ${CMAKE_SOURCE_DIR}/openvpn/plugin/windows/ck-ovpn-plugin.lib)
+endif (MSVC)
+
+if(APPLE)
+    set(CLOAK_INCLUDE "${CMAKE_SOURCE_DIR}/openvpn/plugin/darwin")
+    target_link_libraries(ovpncli ${CMAKE_SOURCE_DIR}/openvpn/plugin/darwin/ck-ovpn-plugin.a)
+endif()
+
+if(UNIX AND NOT APPLE)
+    set(CLOAK_INCLUDE "${CMAKE_SOURCE_DIR}/openvpn/plugin/linux")
+    target_link_libraries(ovpncli ${CMAKE_SOURCE_DIR}/openvpn/plugin/linux/ck-ovpn-plugin.a)
+endif()
+
 endif ()
 
 add_core_dependencies(coreUnitTests)

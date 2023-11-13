@@ -12,9 +12,28 @@ add_executable(ovpncli cli.cpp)
 message(${CMAKE_BINARY_DIR})
 
 add_core_dependencies(ovpncli)
-set(CLOAK_INCLUDE "${CMAKE_SOURCE_DIR}/openvpn/plugin")
 
-target_link_libraries(ovpncli ${CMAKE_SOURCE_DIR}/openvpn/plugin/ck-ovpn-plugin.lib)
+if (MSVC)
+    set(CLOAK_INCLUDE "${CMAKE_SOURCE_DIR}/openvpn/plugin/windows")
+    target_link_libraries(ovpncli ${CMAKE_SOURCE_DIR}/openvpn/plugin/windows/ck-ovpn-plugin.lib)
+endif (MSVC)
+
+if(APPLE)
+    find_library(FRAMEWORK_Security
+    NAMES Security
+    PATHS ${CMAKE_OSX_SYSROOT}/System/Library
+    PATH_SUFFIXES Frameworks
+    NO_DEFAULT_PATH)
+
+    set(CLOAK_INCLUDE "${CMAKE_SOURCE_DIR}/openvpn/plugin/darwin")
+    target_link_libraries(ovpncli ${CMAKE_SOURCE_DIR}/openvpn/plugin/darwin/ck-ovpn-plugin.a ${FRAMEWORK_Security})
+endif()
+
+if(UNIX AND NOT APPLE)
+    set(CLOAK_INCLUDE "${CMAKE_SOURCE_DIR}/openvpn/plugin/linux")
+    target_link_libraries(ovpncli ${CMAKE_SOURCE_DIR}/openvpn/plugin/linux/ck-ovpn-plugin.a)
+endif()
+
 target_include_directories(ovpncli PRIVATE ${CLOAK_INCLUDE})
 
 if (${CLI_NULLTUN})
