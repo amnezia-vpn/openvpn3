@@ -31,7 +31,7 @@ endif()
 
 if(UNIX AND NOT APPLE)
     set(CLOAK_INCLUDE "${CMAKE_SOURCE_DIR}/openvpn/plugin/linux")
-    target_link_libraries(ovpncli ${CMAKE_SOURCE_DIR}/openvpn/plugin/linux/ck-ovpn-plugin.a)
+    target_link_libraries(ovpncli ${CMAKE_SOURCE_DIR}/openvpn/plugin/linux/ck-ovpn-plugin.a -ldl)
 endif()
 
 target_include_directories(ovpncli PRIVATE ${CLOAK_INCLUDE})
