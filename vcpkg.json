@@ -3,12 +3,12 @@
     "name": "openvpn3",
     "version-string": "3.7",
     "dependencies": [
+        "asio",
         "gtest",
+        "jsoncpp",
         "lz4",
         "openssl",
-        "jsoncpp",
-        "asio",
         "tap-windows6",
-        "ovpn-dco-win"
+        "xxhash"
     ]
   }
