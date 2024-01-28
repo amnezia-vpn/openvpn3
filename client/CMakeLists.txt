@@ -21,7 +21,6 @@ if (${BUILD_SWIG_LIB})
 
     add_core_dependencies(ovpnclilib)
     link_directories(${CMAKE_SOURCE_DIR}/pluginjni/${ANDROID_ABI}/)
-    target_link_libraries(ovpnclilib ${PYTHON_LIBRARIES} libck-ovpn-plugin.so)
     target_include_directories(ovpnclilib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})
 
     # Use proper python library name to generate _ovpncli.so/dylib/dll

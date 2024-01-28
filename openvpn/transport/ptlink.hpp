@@ -34,6 +34,7 @@
 #include <openvpn/common/rc.hpp>
 #include <openvpn/common/socktypes.hpp>
 #include <openvpn/error/excode.hpp>
+#include <openvpn/log/logthread.hpp>
 #include <openvpn/frame/frame.hpp>
 #include <openvpn/log/sessionstats.hpp>
 #include <openvpn/transport/pktstream.hpp>
@@ -495,7 +496,6 @@ namespace openvpn {
       SessionStats::Ptr stats;
       const size_t send_queue_max_size;
       const size_t free_list_max_size;
-      std::mutex send_mt;
       Queue queue;      // send queue
       Queue free_list;  // recycled free buffers for send queue
       PacketStream pktstream;
@@ -509,3 +509,4 @@ namespace openvpn {
 } // namespace openvpn
 
 #endif
+
