@@ -50,5 +50,6 @@ namespace openvpn {
     #define OPENVPN_ASYNC_HANDLER
   #endif
 }
+} // namespace openvpn
 
 #endif
