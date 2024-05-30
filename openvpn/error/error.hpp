@@ -149,6 +149,9 @@ inline const char *name(const size_t type)
         "TCP_SIZE_ERROR",
         "TCP_CONNECT_ERROR",
         "UDP_CONNECT_ERROR",
+        "PT_CONNECT_ERROR",                     // client error on Pluggable Transports connect
+        "PT_OVERFLOW",                          // Pluggable Transports output queue overflow
+        "PT_SIZE_ERROR",                        // Pluggable Transports bad packet size			
         "SSL_ERROR",
         "SSL_PARTIAL_WRITE",
         "SSL_CA_MD_TOO_WEAK",

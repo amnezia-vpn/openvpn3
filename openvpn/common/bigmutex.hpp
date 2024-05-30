@@ -49,7 +49,6 @@ namespace openvpn {
   #else
     #define OPENVPN_ASYNC_HANDLER
   #endif
-}
 } // namespace openvpn
 
 #endif
