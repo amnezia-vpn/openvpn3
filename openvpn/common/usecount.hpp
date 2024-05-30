@@ -21,29 +21,35 @@
 
 // General purpose class for scope accounting.
 
-#ifndef OPENVPN_COMMON_USECOUNT_H
-#define OPENVPN_COMMON_USECOUNT_H
+#pragma once
 
 namespace openvpn {
 
-  class UseCount
-  {
+class UseCount
+{
   public:
-    UseCount(int& count)
-      : count_(count)
+    /**
+     * Temporarily increments the variable by one for the scope an instance
+     * of this class is defined.
+     * @param count
+     */
+    explicit UseCount(int &count)
+        : count_(count)
     {
-      ++count_;
+        ++count_;
     }
+
+    /* make this class not copyable. */
+    UseCount(const UseCount &) = delete;
+    UseCount &operator=(UseCount &) = delete;
 
     ~UseCount()
     {
-      --count_;
+        --count_;
     }
 
   private:
-    int& count_;
-  };
+    int &count_;
+};
 
 } // namespace openvpn
-
-#endif // OPENVPN_COMMON_USECOUNT_H

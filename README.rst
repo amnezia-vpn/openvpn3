@@ -132,7 +132,7 @@ Ensure that [homebrew](https://brew.sh/) is set up.
 
 ::
 
-    $  brew install asio cmake jsoncpp lz4 openssl pkg-config
+    $  brew install asio cmake jsoncpp lz4 openssl pkg-config xxhash
 
 Now build the OpenVPN 3 client executable:
 
@@ -238,7 +238,7 @@ Build and run tests on Linux:
 Developer Guide
 ---------------
 
-OpenVPN 3 is written in C++11 and developers who are moving
+OpenVPN 3 is written in C++17 and developers who are moving
 from C to C++ should take some time to familiarize themselves with
 key C++ design patterns such as *RAII*:
 
