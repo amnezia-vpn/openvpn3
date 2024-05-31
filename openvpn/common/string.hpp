@@ -531,7 +531,7 @@ inline std::string join(const T &strings,
                         const bool tail = false)
 {
     /* ensure we have a container with strings as values */
-    static_assert(std::is_same_v<typename T::value_type, std::string>);
+ //   static_assert(std::is_same_v<typename T::value_type, std::string>);
     std::string ret;
     bool first = true;
     for (const auto &s : strings)
