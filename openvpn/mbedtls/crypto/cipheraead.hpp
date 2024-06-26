@@ -109,17 +109,10 @@ class CipherContextAEAD : public CipherContextCommon
                  size_t ad_len)
     {
         check_initialized();
-        const int status = mbedtls_cipher_auth_encrypt_ext(&ctx,
-                                                           iv,
-                                                           IV_LEN,
-                                                           ad,
-                                                           ad_len,
-                                                           input,
-                                                           length,
-                                                           output,
-                                                           length + AUTH_TAG_LEN,
-                                                           &length,
-                                                           AUTH_TAG_LEN);
+
+        const int status = mbedtls_cipher_auth_encrypt(&ctx, iv, IV_LEN, ad, ad_len, input, length,
+                                   output, &length, tag, AUTH_TAG_LEN);
+        
         if (unlikely(status))
             OPENVPN_THROW(mbedtls_aead_error, "mbedtls_cipher_auth_encrypt failed with status=" << status);
     }
@@ -136,19 +129,18 @@ class CipherContextAEAD : public CipherContextCommon
         check_initialized();
 
         size_t olen;
-        const int status = mbedtls_cipher_auth_decrypt_ext(&ctx,
-                                                           iv,
-                                                           IV_LEN,
-                                                           ad,
-                                                           ad_len,
-                                                           input,
-                                                           length,
-                                                           output,
-                                                           length - AUTH_TAG_LEN,
-                                                           &olen,
-                                                           AUTH_TAG_LEN);
 
-        return (olen == length - AUTH_TAG_LEN) && (status == 0);
+        // Older versions of mbed TLS have the tag a non const, even though it is
+
+        // not modified, const cast it here
+
+        const int status = mbedtls_cipher_auth_encrypt(&ctx, iv, IV_LEN, ad, ad_len, input, length, output, &length,
+
+                                   const_cast<unsigned char*>(tag), AUTH_TAG_LEN);
+
+        return status == 0;
+
+
     }
 
     bool is_initialized() const

@@ -1542,12 +1542,12 @@ class ProtoContext
         // for example if cipher/digest are pushed.
         struct DataChannelKey
         {
-            DataChannelKey()
-            {
-            }
+            DataChannelKey() : rekey_defined(false) {}
+
+            bool rekey_defined;
 
             OpenVPNStaticKey key;
-            std::optional<CryptoDCInstance::RekeyType> rekey_type;
+            CryptoDCInstance::RekeyType rekey_type;
         };
 
       public:
@@ -1915,7 +1915,7 @@ class ProtoContext
                 crypto->rekey(type);
             else if (data_channel_key)
             {
-                // save for deferred processing
+                data_channel_key->rekey_defined = true;                // save for deferred processing
                 data_channel_key->rekey_type = type;
             }
         }
@@ -2023,6 +2023,7 @@ class ProtoContext
 
             if (data_channel_key)
             {
+                dck->rekey_defined = data_channel_key->rekey_defined;
                 dck->rekey_type = data_channel_key->rekey_type;
             }
             dck.swap(data_channel_key);
@@ -2161,8 +2162,8 @@ class ProtoContext
 
             enable_compress = crypto->consider_compression(proto.config->comp_ctx);
 
-            if (data_channel_key->rekey_type.has_value())
-                crypto->rekey(data_channel_key->rekey_type.value());
+            if (data_channel_key->rekey_defined)
+                crypto->rekey(data_channel_key->rekey_type);
             data_channel_key.reset();
 
             // set up compression for data channel
