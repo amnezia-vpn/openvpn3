@@ -25,7 +25,7 @@
 #define OPENVPN_TRANSPORT_CLIENT_PTCLI_H
 
 #include <sstream>
-
+#include <string> 
 #include <openvpn/io/io.hpp>
 
 #include <openvpn/transport/client/pluggable/pt.hpp>
@@ -302,14 +302,14 @@ namespace openvpn {
 	  }
 	  catch (const std::exception& e)
 	  {
-	      error_code = Error::PT_CONNECT_ERROR;
-	      const ExceptionCode *ec = dynamic_cast<const ExceptionCode *>(&e);
-	      if (ec && ec->code_defined())
-		error_code = ec->code();
+	    error_code = Error::PT_CONNECT_ERROR;
+	    const ExceptionCode *ec = dynamic_cast<const ExceptionCode *>(&e);
+	    if (ec && ec->code_defined())
+			error_code = ec->code();
 	  }
 
 	  openvpn_io::post(io_context, [error_code, completion=std::move(completion)]() {
-	      completion(error_code);
+		completion(error_code);
 	  });
 	});
       }
@@ -351,13 +351,13 @@ namespace openvpn {
 	    else
 	      {
 		std::ostringstream os;
-		os <<  "PT connect error on '" << server_host << ':' << server_port << "' (" << server_endpoint << ") ";
+        os <<  "PT connect error on '" << server_host << ':' << server_port << "' (" << server_endpoint << ") ";
 		config->stats->error(Error::PT_CONNECT_ERROR);
 		stop();
 		parent->transport_error(Error::UNDEF, os.str());
 	      }
 	  }
-      }
+    }
 
       openvpn_io::io_context& io_context;
 

@@ -31,7 +31,7 @@
 #include "ck-ovpn-plugin.h"
 
 #endif
-
+// #include <openvpn/log/logthread.hpp>
 namespace openvpn {
 namespace PluggableTransports {
 
@@ -39,24 +39,26 @@ namespace PluggableTransports {
 class CloakTransport : public PluggableTransports::Connection, public PluggableTransports::Transport, public RC<thread_unsafe_refcount> {
  public:
   CloakTransport(){};
+
   CloakTransport(openvpn_io::ip::tcp::endpoint address) {
-  
     int ret = 0;
 
     char* config = getenv("CLOAK_CONFIG");
 
     if (config == nullptr){
+      ret_out = 201;
       return;
     }
 
     if (*config == '\0') {
+      ret_out = 202;
       return;
     }
-
     // Setup cloak config
     ret = Initialize_cloak_c_client(config);
-
+    ret_out = ret;
     if (ret < 0) {
+      ret_out = 203;
       return;
     }
 
@@ -73,7 +75,7 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
 
     GoInt number_of_characters_sent =
         Cloak_write(client_id, (void*)buffer.data(), (int)buffer.size());
-
+    
     if (number_of_characters_sent < 0) {
       goto error;
     }
@@ -88,12 +90,10 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
     if (!inited) {
       return -1;
     }
-    
-      std::lock_guard<std::mutex> lock(recv_mt);
 
     GoInt number_of_bytes_read =
         Cloak_read(client_id, (void*)buffer.data(), (int)buffer.size());
-
+    
     if (number_of_bytes_read < 0) {
       return -1;
     }
@@ -101,24 +101,24 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
     return number_of_bytes_read;
   };
 
-  void close() { 
-       Cloak_close_connection(client_id); 
-       inited = false;     
+  void close() {
+      Cloak_close_connection(client_id);
+      inited = false;
   };
 
   int native_handle() { return Cloak_native_handle(); };
-
+  int get_ret_out_int(){
+    return ret_out;
+  }
   PluggableTransports::Connection::Ptr dial(
       openvpn_io::ip::tcp::endpoint address) {
     return new CloakTransport(address);
   };
 
  private:
-
-  std::mutex recv_mt;
   GoInt client_id;
-  
   bool inited = false;
+  int ret_out;
 };
 
 struct Factory {
