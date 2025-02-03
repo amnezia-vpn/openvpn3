@@ -21,7 +21,7 @@ jobs:
         arch: ${{ matrix.arch }}
 
     - name: Restore from cache and install vcpkg
-      uses: lukka/run-vcpkg@v6
+      uses: lukka/run-vcpkg@v11
       with:
         vcpkgGitCommitId: '36fb23307e10cc6ffcec566c46c4bb3f567c82c6'
         vcpkgJsonGlob: '**/windows/vcpkg.json'
@@ -59,7 +59,7 @@ jobs:
       run: sudo apt update && sudo apt install -y mingw-w64 unzip cmake build-essential
 
     - name: Restore from cache and install vcpkg
-      uses: lukka/run-vcpkg@v10
+      uses: lukka/run-vcpkg@v11
       with:
         vcpkgGitCommitId: '36fb23307e10cc6ffcec566c46c4bb3f567c82c6'
         vcpkgJsonGlob: '**/mingw/vcpkg.json'
