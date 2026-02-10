@@ -1065,6 +1065,17 @@ class ProtoContext : public logging::LoggingMixin<OPENVPN_DEBUG_PROTO, logging::
         {
             std::ostringstream out;
             const char *compstr = nullptr;
+            auto extra_peer_value = [this](const char *key) -> const std::string *
+            {
+                if (!extra_peer_info)
+                    return nullptr;
+                for (const auto &kv : *extra_peer_info)
+                {
+                    if (kv.key == key)
+                        return &kv.value;
+                }
+                return nullptr;
+            };
 
             // supports op32 and P_DATA_V2 and expects a push reply
 
@@ -1083,11 +1094,17 @@ class ProtoContext : public logging::LoggingMixin<OPENVPN_DEBUG_PROTO, logging::
                 iv_proto |= IV_PROTO_TLS_KEY_EXPORT;
             }
 
-            out << "IV_VER=" << OPENVPN_VERSION << '\n';
+            if (const std::string *v = extra_peer_value("IV_VER"))
+                out << "IV_VER=" << *v << '\n';
+            else
+                out << "IV_VER=" << OPENVPN_VERSION << '\n';
             out << "IV_PLAT=" << platform_name() << '\n';
             out << "IV_NCP=2\n";   // negotiable crypto parameters V2
             out << "IV_TCPNL=1\n"; // supports TCP non-linear packet ID
-            out << "IV_PROTO=" << std::to_string(iv_proto) << '\n';
+            if (const std::string *v = extra_peer_value("IV_PROTO"))
+                out << "IV_PROTO=" << *v << '\n';
+            else
+                out << "IV_PROTO=" << std::to_string(iv_proto) << '\n';
             out << "IV_MTU=" << std::to_string(tun_mtu_max) << "\n";
             /*
              * OpenVPN3 allows to be pushed any cipher that it supports as it
@@ -1099,17 +1116,24 @@ class ProtoContext : public logging::LoggingMixin<OPENVPN_DEBUG_PROTO, logging::
              * on server.
              *
              */
-            out << "IV_CIPHERS=";
-            CryptoAlgs::for_each(
-                [&out](CryptoAlgs::Type type, const CryptoAlgs::Alg &alg) -> bool
-                {
-                if (!alg.dc_cipher())
-                    return false;
-                out << alg.name() << ':';
-                return true;
-                });
-            out.seekp(-1, std::ios_base::cur);
-            out << "\n";
+            if (const std::string *v = extra_peer_value("IV_CIPHERS"))
+            {
+                out << "IV_CIPHERS=" << *v << '\n';
+            }
+            else
+            {
+                out << "IV_CIPHERS=";
+                CryptoAlgs::for_each(
+                    [&out](CryptoAlgs::Type type, const CryptoAlgs::Alg &alg) -> bool
+                    {
+                    if (!alg.dc_cipher())
+                        return false;
+                    out << alg.name() << ':';
+                    return true;
+                    });
+                out.seekp(-1, std::ios_base::cur);
+                out << "\n";
+            }
 
             compstr = comp_ctx.peer_info_string();
 
